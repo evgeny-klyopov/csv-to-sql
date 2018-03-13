@@ -1,6 +1,4 @@
 .idea/
 vendor/
 phpunit.xml
-/convert
-/convert.bat
 output/

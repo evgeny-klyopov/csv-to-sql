@@ -1,0 +1,2 @@
+#!/bin/sh
+./src/bin/run app:convert $@
