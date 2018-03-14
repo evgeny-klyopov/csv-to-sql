@@ -6,12 +6,14 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\Finder;
 
+/**
+ * Class Convert
+ *
+ * @package Alva\CsvToSql\Console
+ */
 class Convert extends Command
 {
-    private $allowedExtension = ['csv'];
-
     /**
      *  Configure command
      */
@@ -23,28 +25,20 @@ class Convert extends Command
             ->addArgument(
                 'pathToCsv',
                 InputArgument::REQUIRED,
-                'full path to csv file'
+                'full path to csv file or files with separator "|"'
             )
             ->addArgument(
-                'startRow',
+                'inOneTable',
                 InputArgument::OPTIONAL,
-                'convert all to single file'
-            )
-            ->addArgument(
-                'inOneFile',
-                InputArgument::OPTIONAL,
-                'convert all to single file'
+                'convert all to single table'
             )
             ->addArgument(
                 'separatorColumns',
                 InputArgument::OPTIONAL,
                 'separator columns'
             )
-            ->setHelp('How use (show list help)?')
-        ;
+            ->setHelp('How use (show list help)?');
     }
-
-
 
     /**
      * @param InputInterface  $input
@@ -54,52 +48,48 @@ class Convert extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln('<info>Start</info>');
+
         $pathToCsv = $input->getArgument('pathToCsv');
 
-        $inOneFile = $input->getArgument('inOneFile');
-        $inOneFile = (null === $inOneFile) ? 1 : (int)$inOneFile;
-        $inOneFile = (0 !== $inOneFile) ? true : false;
+        $inOneTable = $input->getArgument('inOneTable');
+        $inOneTable = (null === $inOneTable) ? 1 : (int)$inOneTable;
+        $inOneTable = (0 !== $inOneTable) ? true : false;
 
         $separatorColumns = $input->getArgument('separatorColumns');
         $separatorColumns = (null === $separatorColumns) ? ';' : $separatorColumns;
+        $files            = $this->getFiles($pathToCsv);
 
-//        $convertFiles = $this->getFiles($pathToCsv);
-//
-//        var_dump($pathToCsv);
-//        var_dump($inOneFile);
-//        var_dump($separatorColumns);
+        $output->writeln('');
+        $output->writeln('<comment>Params:</comment>');
+        $output->writeln('<info><pathToCsv></info>: - ' . $pathToCsv);
+        $output->writeln('<info><inOneTable></info>: - ' . $inOneTable);
+        $output->writeln('<info><separatorColumns></info>: - ' . $separatorColumns);
+        $output->writeln('');
+
+        $output->writeln('<comment>Convert files:</comment>');
+        $output->writeln($files);
+        $output->writeln('');
+
+        $output->writeln('<info>Run ...</info>');
+
         try {
-            (new \Alva\CsvToSql\Convert(
-                $this->getFiles($pathToCsv)
+            $convertFiles = (new \Alva\CsvToSql\Convert(
+                $files
                 , OUTPUT_DIRECTORY
-                , $inOneFile
+                , $inOneTable
                 , $separatorColumns
             ))->run();
-        } catch(\Exception $e) {
+
+            $output->writeln('');
+            $output->writeln('<comment>Sql files:</comment>');
+            $output->writeln($convertFiles);
+            $output->writeln('');
+
+            $output->writeln('<info>Success</info>');
+        } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage());
         }
-
-
-
-        return ;
-        // get argument
-        $pathToCsv = $input->getArgument('pathToCsv');
-        $inOneFile = $input->getArgument('inOneFile');
-
-        $inOneFile = (null === $inOneFile) ? 1 : (int) $inOneFile;
-        $inOneFile = (0 !== $inOneFile) ? 1 : 0;
-
-        $separatorColumns = $input->getArgument('separatorColumns');
-        $separatorColumns = (null === $separatorColumns) ? ';' : $separatorColumns;
-
-        $convertFiles = $this->getFiles($pathToCsv);
-
-        $this
-            ->checkFiles($convertFiles)
-            ->checkOutputDirectory()
-            ->convertToSql($convertFiles, $inOneFile, $separatorColumns)
-
-        ;
     }
 
     /**
@@ -107,7 +97,7 @@ class Convert extends Command
      *
      * @return array
      */
-    private function getFiles(string $pathToCsv) : array
+    private function getFiles(string $pathToCsv): array
     {
         if (false !== \mb_strpos($pathToCsv, '|')) {
             $files = \explode('|', $pathToCsv);
@@ -116,68 +106,5 @@ class Convert extends Command
         }
 
         return $files;
-    }
-
-    /**
-     * @param array $files
-     *
-     * @return $this
-     * @throws \RuntimeException
-     */
-    private function checkFiles(array $files): self
-    {
-        $errorMessages = [];
-        $allowedExtension = $this->allowedExtension;
-
-        \array_walk($files, function($file) use (&$errorMessages, $allowedExtension) {
-            if (false === is_file($file)) {
-                $errorMessages[] = 'Not found file - ' . $file;
-            } else if (true !== \in_array(pathinfo($file, PATHINFO_EXTENSION), $allowedExtension, false)) {
-                $errorMessages[] = 'Not allowed extension for file - ' . $file;
-            }
-        });
-
-        if (!empty($errorMessages)) {
-            throw new \RuntimeException(implode("\n", $errorMessages));
-        }
-
-        return $this;
-    }
-
-    private function convertToSql(array $files, int $inOneFile, string $separatorColumns): self
-    {
-        foreach ($files as $file) {
-            $reader = new \Alva\CsvToSql\Reader($file);
-
-            foreach ($reader->iterate("Text") as $line) {
-                $row = explode($separatorColumns, $line);
-
-                echo '<pre>';
-                    print_r($row);
-                echo '</pre>';
-                die();
-
-            }
-
-die();
-        }
-
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     * @throws \RuntimeException
-     */
-    private function checkOutputDirectory(): self
-    {
-        if (false === is_dir(OUTPUT_DIRECTORY)) {
-            if (!mkdir(OUTPUT_DIRECTORY) && !is_dir(OUTPUT_DIRECTORY)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', OUTPUT_DIRECTORY));
-            }
-        }
-
-        return $this;
     }
 }

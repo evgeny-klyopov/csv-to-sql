@@ -1,15 +1,16 @@
 #!/usr/bin/env php
 <?php
 
-define('DS',     DIRECTORY_SEPARATOR);
-define('LOCALE', 'ru_RU');
-define('PATH',   __DIR__ . DS . '..' . DS . '..');
-define('OUTPUT_DIRECTORY',   PATH . DS . 'output' . DS);
+define('DS',               DIRECTORY_SEPARATOR);
+define('LOCALE',           'en_EN');
+define('PATH',             __DIR__ . DS . '..' . DS . '..');
+define('OUTPUT_DIRECTORY', PATH . DS . 'output' . DS);
 
 require PATH . '/vendor/autoload.php';
 
 $application = new \Symfony\Component\Console\Application();
 $application->add(new Alva\CsvToSql\Console\Convert());
+
 try {
     $application->run();
 } catch (Exception $e) {

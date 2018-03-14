@@ -1,15 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: klepov.e
- * Date: 13.03.2018
- * Time: 20:02
- */
 
 namespace Alva\CsvToSql;
 
+/**
+ * Class Reader
+ *
+ * @package Alva\CsvToSql
+ */
 class Reader
 {
+    /**
+     * @var \SplFileObject
+     */
     protected $file;
 
     /**
@@ -30,6 +32,9 @@ class Reader
         $this->file = new \SplFileObject($filename, $mode);
     }
 
+    /**
+     * @return \Generator|int
+     */
     protected function iterateText()
     {
         $count = 0;
@@ -41,6 +46,11 @@ class Reader
         return $count;
     }
 
+    /**
+     * @param $bytes
+     *
+     * @return \Generator
+     */
     protected function iterateBinary($bytes)
     {
         $count = 0;
@@ -57,7 +67,7 @@ class Reader
      *
      * @return \NoRewindIterator
      */
-    public function iterate(string $type = "Text", $bytes = NULL): \NoRewindIterator
+    public function iterate(string $type = "Text", $bytes = null): \NoRewindIterator
     {
         if ($type === "Text") {
             return new \NoRewindIterator($this->iterateText());
