@@ -54,6 +54,34 @@ class Convert extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $pathToCsv = $input->getArgument('pathToCsv');
+
+        $inOneFile = $input->getArgument('inOneFile');
+        $inOneFile = (null === $inOneFile) ? 1 : (int)$inOneFile;
+        $inOneFile = (0 !== $inOneFile) ? true : false;
+
+        $separatorColumns = $input->getArgument('separatorColumns');
+        $separatorColumns = (null === $separatorColumns) ? ';' : $separatorColumns;
+
+//        $convertFiles = $this->getFiles($pathToCsv);
+//
+//        var_dump($pathToCsv);
+//        var_dump($inOneFile);
+//        var_dump($separatorColumns);
+        try {
+            (new \Alva\CsvToSql\Convert(
+                $this->getFiles($pathToCsv)
+                , OUTPUT_DIRECTORY
+                , $inOneFile
+                , $separatorColumns
+            ))->run();
+        } catch(\Exception $e) {
+            throw new \RuntimeException($e->getMessage());
+        }
+
+
+
+        return ;
         // get argument
         $pathToCsv = $input->getArgument('pathToCsv');
         $inOneFile = $input->getArgument('inOneFile');

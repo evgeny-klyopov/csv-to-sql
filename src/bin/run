@@ -4,7 +4,7 @@
 define('DS',     DIRECTORY_SEPARATOR);
 define('LOCALE', 'ru_RU');
 define('PATH',   __DIR__ . DS . '..' . DS . '..');
-define('OUTPUT_DIRECTORY',   PATH . DS . 'output');
+define('OUTPUT_DIRECTORY',   PATH . DS . 'output' . DS);
 
 require PATH . '/vendor/autoload.php';
 
